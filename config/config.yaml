@@ -1,0 +1,11 @@
+logger:
+  format: "text"
+  level: "debug"
+mongodb:
+  uri: "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.10.1"
+  database: "url-shorter"
+  collection: "urls"
+http-server:
+  address: "localhost:8080"
+  read-header-timeout: 4s
+  idle-timeout: 60s
