@@ -3,30 +3,23 @@ package REST
 import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
+	"log"
 	"net/http"
 	"url-shorter/internal/config"
 	"url-shorter/internal/database/mongodb"
 	"url-shorter/internal/httpServer/REST/handlers"
 )
 
-func StartServer(cfg config.HTTPServerConfig, logger *slog.Logger, storage mongodb.Storage) error {
+func StartServer(cfg config.HTTPServerConfig, logger *slog.Logger, storage mongodb.Storage) {
 	router := gin.Default()
+	configRouter(router, logger, storage, cfg.Address)
+	startHandleServer(router, cfg)
+
+}
+
+func configRouter(router *gin.Engine, logger *slog.Logger, storage mongodb.Storage, address string) {
 	loadFiles(router)
-
-	router.GET("/", showMainPage)
-	router.POST("/getShortUrl", handlers.HandlerGetUrl(storage, logger, cfg.Address))
-
-	router.NoRoute(handlers.HandlerRedirectUrl(storage, logger))
-
-	srv := http.Server{
-		Addr:              cfg.Address,
-		Handler:           router,
-		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
-		IdleTimeout:       cfg.IdleTimeout,
-	}
-
-	err := srv.ListenAndServe()
-	return err
+	handlers.InitHandlers(router, logger, storage, address)
 }
 
 func loadFiles(router *gin.Engine) {
@@ -34,6 +27,13 @@ func loadFiles(router *gin.Engine) {
 	router.LoadHTMLGlob("templates/*")
 }
 
-func showMainPage(c *gin.Context) {
-	c.HTML(200, "main_page.html", nil)
+func startHandleServer(router *gin.Engine, cfg config.HTTPServerConfig) {
+	srv := http.Server{
+		Addr:              cfg.Address,
+		Handler:           router,
+		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
+		IdleTimeout:       cfg.IdleTimeout,
+	}
+
+	log.Fatal(srv.ListenAndServe())
 }

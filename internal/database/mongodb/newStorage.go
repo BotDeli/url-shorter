@@ -20,7 +20,7 @@ type MongoStorage struct {
 }
 
 const (
-	errConnectionClient = "failed to connect to mongodb"
+	ErrorConnectionClient = "failed to connect to mongodb"
 )
 
 var (
@@ -41,7 +41,7 @@ func connectToMongodb(ctx context.Context, cfg config.MongodbConfig) *mongo.Clie
 	optionsClient := getOptionsClient(cfg.Uri)
 	client, err := mongo.Connect(ctx, optionsClient)
 	if err != nil {
-		log.Fatal(errConnectionClient)
+		log.Fatal(ErrorConnectionClient)
 	}
 	return client
 }
