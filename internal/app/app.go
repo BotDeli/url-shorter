@@ -1,6 +1,8 @@
 package app
 
 import (
+	"log"
+	"url-shorter/internal/cache"
 	"url-shorter/internal/config"
 	"url-shorter/internal/database/mongodb"
 	"url-shorter/internal/httpServer/REST"
@@ -12,5 +14,6 @@ func StartApplication() {
 	logg := logger.MustStartLogger(cfg.Logger)
 	storage := mongodb.MustNewStorage(cfg.Mongodb)
 	defer storage.Disconnect()
-	REST.StartServer(cfg.HTTPServer, logg, storage)
+	c := cache.MustInitCache(cfg.Cache.Capacity)
+	log.Fatal(REST.StartServer(cfg.HTTPServer, logg, storage, c))
 }

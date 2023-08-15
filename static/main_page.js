@@ -1,8 +1,7 @@
 document.getElementById('url-input').addEventListener('submit', submitForm);
 document.getElementById('copy').addEventListener('click', copy);
 
-const pattern = /^(https?:\/\/)?(([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|/;
-let host = 'http://localhost:8080/getShortUrl'
+let address = 'http://localhost:8080'
 let text = document.getElementById('short-url-text');
 let link = document.getElementById('short-url-link');
 let copyButton = document.getElementById('copy');
@@ -12,10 +11,10 @@ copyButton.hidden = true;
 function submitForm(event)
 {
     event.preventDefault();
-    let url = document.getElementById('url').value
-
-    if (pattern.test(url)) {
-        fetch(host, {
+    const url = document.getElementById('url').value
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+        text.innerText = "";
+        fetch(address+'/getShortUrl', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

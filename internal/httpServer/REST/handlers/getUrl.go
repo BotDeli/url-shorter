@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
 	"net/http"
+	"url-shorter/pkg/cache"
 )
 
 type storageShortUrl interface {
@@ -22,36 +24,40 @@ var (
 	ErrorShortLengthUrl = errors.New("error shorted length url")
 )
 
-func HandlerGetUrl(storage storageShortUrl, logger *slog.Logger, address string) gin.HandlerFunc {
+func HandlerGetUrl(storage storageShortUrl, logger *slog.Logger, cache cache.Cache, address string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var err error
+		var (
+			url, shortUrl string
+			added         bool
+			err           error
+		)
 
 		if err = checkContentJSON(c); err != nil {
 			return
 		}
 
-		var url struct {
-			Url string `json:"url"`
-		}
-
-		if err = decodeJSON(c, logger, url); err != nil {
+		if url, err = decodeUrl(c, logger); err != nil {
 			return
 		}
 
-		if err = checkHomeAddress(c, url.Url, address); err != nil {
+		if err = checkHomeAddress(c, url, address); err != nil {
 			return
 		}
 
-		if err = checkCorrectLengthUrl(c, url.Url); err != nil {
+		if err = checkCorrectLengthUrl(c, url); err != nil {
 			return
 		}
 
-		shortUrl, err := getShortUrl(c, logger, storage, url.Url)
+		if shortUrl, added = cache.Get(url); !added || shortUrl == "" {
 
-		if err != nil {
-			return
+			shortUrl, err = getShortUrl(c, logger, storage, url)
+
+			if err != nil {
+				return
+			}
+			fmt.Println(url)
+			_ = cache.Set(url, shortUrl)
 		}
-
 		c.JSON(200, gin.H{"url": address + shortUrl})
 	}
 }
@@ -65,13 +71,19 @@ func checkContentJSON(c *gin.Context) error {
 	return nil
 }
 
-func decodeJSON(c *gin.Context, logger *slog.Logger, output interface{}) (err error) {
-	if err = c.ShouldBindJSON(&output); err != nil {
+func decodeUrl(c *gin.Context, logger *slog.Logger) (string, error) {
+	var (
+		err error
+		url = struct {
+			Url string `json:"url"`
+		}{}
+	)
+	if err = c.ShouldBindJSON(&url); err != nil {
 		logger.Warn("HandlerGetUrl.ShouldBindJSON:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 	}
 
-	return err
+	return url.Url, err
 }
 
 func checkHomeAddress(c *gin.Context, url, address string) error {
@@ -88,7 +100,7 @@ func isHomeAddress(url, address string) bool {
 }
 
 func checkCorrectLengthUrl(c *gin.Context, url string) error {
-	if len(url) <= 5 {
+	if len(url) <= 10 {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return ErrorShortLengthUrl
 	}

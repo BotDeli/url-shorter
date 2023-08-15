@@ -11,6 +11,7 @@ type Config struct {
 	Logger     LoggerConfig     `yaml:"logger" env-required:"true"`
 	Mongodb    MongodbConfig    `yaml:"mongodb" env-required:"true"`
 	HTTPServer HTTPServerConfig `yaml:"http-server" env-required:"true"`
+	Cache      CacheConfig      `yaml:"cache" env-required:""`
 }
 
 type LoggerConfig struct {
@@ -28,6 +29,10 @@ type HTTPServerConfig struct {
 	Address           string        `yaml:"address" env-default:"localhost:8080"`
 	ReadHeaderTimeout time.Duration `yaml:"read-header-timeout" env-default:"4"`
 	IdleTimeout       time.Duration `yaml:"idle-timeout" env-default:"60"`
+}
+
+type CacheConfig struct {
+	Capacity int `yaml:"capacity" env-default:"100"`
 }
 
 const (

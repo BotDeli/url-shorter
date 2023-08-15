@@ -3,23 +3,22 @@ package REST
 import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
-	"log"
 	"net/http"
 	"url-shorter/internal/config"
 	"url-shorter/internal/database/mongodb"
 	"url-shorter/internal/httpServer/REST/handlers"
+	"url-shorter/pkg/cache"
 )
 
-func StartServer(cfg config.HTTPServerConfig, logger *slog.Logger, storage mongodb.Storage) {
+func StartServer(cfg config.HTTPServerConfig, logger *slog.Logger, storage mongodb.Storage, cache cache.Cache) error {
 	router := gin.Default()
-	configRouter(router, logger, storage, cfg.Address)
-	startHandleServer(router, cfg)
-
+	configRouter(router, logger, storage, cache, cfg.Address)
+	return startHandleServer(router, cfg)
 }
 
-func configRouter(router *gin.Engine, logger *slog.Logger, storage mongodb.Storage, address string) {
+func configRouter(router *gin.Engine, logger *slog.Logger, storage mongodb.Storage, cache cache.Cache, address string) {
 	loadFiles(router)
-	handlers.InitHandlers(router, logger, storage, address)
+	handlers.InitHandlers(router, logger, storage, cache, address)
 }
 
 func loadFiles(router *gin.Engine) {
@@ -27,7 +26,7 @@ func loadFiles(router *gin.Engine) {
 	router.LoadHTMLGlob("templates/*")
 }
 
-func startHandleServer(router *gin.Engine, cfg config.HTTPServerConfig) {
+func startHandleServer(router *gin.Engine, cfg config.HTTPServerConfig) error {
 	srv := http.Server{
 		Addr:              cfg.Address,
 		Handler:           router,
@@ -35,5 +34,5 @@ func startHandleServer(router *gin.Engine, cfg config.HTTPServerConfig) {
 		IdleTimeout:       cfg.IdleTimeout,
 	}
 
-	log.Fatal(srv.ListenAndServe())
+	return srv.ListenAndServe()
 }
