@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>url-shorter</title>
+
+    <link rel="icon" type="image/x-icon" href="../images/main.ico">
+    <link rel="stylesheet" type="text/css" href="../static/main.css">
+</head>
+<body>
+    <main>
+        <div class="logo">
+            <img alt="" src="../images/url.svg">
+            <label>Сократитель</label>
+        </div>
+        <div class="block">
+            <label class="text">Введите ссылку в поле ниже и нажмите кнопку сократить! Это вам поможет избавить от длинных ссылок и будет не стыдно поделиться с друзьями! :3</label>
+        </div>
+        <div class="block nowrap">
+            <input type="text" id="input-url" placeholder="Введите ссылку, которую нужно сократить">
+            <input type="button" id="send-url" class="default-button" value="Сократить">
+        </div>
+        <div class="block" id="window-result">
+            <div class="inline-block left-panel">
+                <div class="block">
+                    <a href="#" id="redirect">
+                        <img alt="" src="../images/redirect.svg">
+                        <span id="output-url">https://url</span>
+                    </a>
+                </div>
+
+                <div class="block">
+                    <div class="buttons">
+                        <input type="button" id="copy-button" class="text button" value="Скопировать">
+                        <input type="button" id="share-button" class="text button">
+                    </div>
+                </div>
+            </div>
+            <div class="inline-block right-panel">
+                <div id="cloud" class="block text"></div>
+            </div>
+        </div>
+    </main>
+<script src="../static/main.js"></script>
+</body>
+</html>

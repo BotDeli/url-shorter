@@ -1,7 +1,10 @@
 package handlers
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
 
 func showMainPage(c *gin.Context) {
-	c.HTML(200, "main_page.html", nil)
+	c.HTML(http.StatusOK, "main.html", nil)
 }

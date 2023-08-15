@@ -6,7 +6,9 @@ mongodb:
   database: "url-shorter"
   collection: "urls"
 http-server:
-  address: "localhost:8080"
+  address: "localhost"
+  port: "8080"
+  protocol: "http://"
   read-header-timeout: 4s
   idle-timeout: 60s
 cache:

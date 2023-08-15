@@ -12,23 +12,24 @@ import (
 
 func StartServer(cfg config.HTTPServerConfig, logger *slog.Logger, storage mongodb.Storage, cache cache.Cache) error {
 	router := gin.Default()
-	configRouter(router, logger, storage, cache, cfg.Address)
+	configRouter(router, cfg, logger, storage, cache)
 	return startHandleServer(router, cfg)
 }
 
-func configRouter(router *gin.Engine, logger *slog.Logger, storage mongodb.Storage, cache cache.Cache, address string) {
+func configRouter(router *gin.Engine, cfg config.HTTPServerConfig, logger *slog.Logger, storage mongodb.Storage, cache cache.Cache) {
 	loadFiles(router)
-	handlers.InitHandlers(router, logger, storage, cache, address)
+	handlers.InitHandlers(router, cfg, logger, storage, cache)
 }
 
 func loadFiles(router *gin.Engine) {
 	router.Static("/static", "./static")
+	router.Static("/images", "./images")
 	router.LoadHTMLGlob("templates/*")
 }
 
 func startHandleServer(router *gin.Engine, cfg config.HTTPServerConfig) error {
 	srv := http.Server{
-		Addr:              cfg.Address,
+		Addr:              cfg.GetHomeAddress(),
 		Handler:           router,
 		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
 		IdleTimeout:       cfg.IdleTimeout,

@@ -14,29 +14,19 @@ func HandlerRedirectUrl(logger *slog.Logger, storage storageUrl) func(c *gin.Con
 	return func(c *gin.Context) {
 		shortUrl := c.Request.URL.String()
 
-		if len(shortUrl) != 13 {
-			notFound(c)
-		}
-
-		url, err := getUrl(c, logger, storage, shortUrl)
+		url, err := getUrl(logger, storage, shortUrl)
 		if err != nil {
+			http.NotFound(c.Writer, c.Request)
 			return
 		}
-
-		c.Redirect(301, url)
+		c.Redirect(http.StatusMovedPermanently, url)
 	}
 }
 
-func notFound(c *gin.Context) {
-	http.NotFound(c.Writer, c.Request)
-}
-
-func getUrl(c *gin.Context, logger *slog.Logger, storage storageUrl, shortUrl string) (string, error) {
+func getUrl(logger *slog.Logger, storage storageUrl, shortUrl string) (string, error) {
 	url, err := storage.GetUrl(shortUrl)
-
 	if err != nil {
 		logger.Warn("HandlerRedirectUrl.getUrl", err)
-		notFound(c)
 	}
 
 	return url, err

@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
 	"net/http"
+	"strings"
+	"url-shorter/internal/config"
 	"url-shorter/pkg/cache"
 )
 
@@ -19,12 +20,11 @@ const (
 )
 
 var (
-	ErrorContentType    = errors.New("error content type")
-	ErrorHomeAddress    = errors.New("home address")
-	ErrorShortLengthUrl = errors.New("error shorted length url")
+	ErrorContentType = errors.New("error content type")
+	ErrorHomeAddress = errors.New("home address")
 )
 
-func HandlerGetUrl(storage storageShortUrl, logger *slog.Logger, cache cache.Cache, address string) gin.HandlerFunc {
+func HandlerGetUrl(storage storageShortUrl, cfg config.HTTPServerConfig, logger *slog.Logger, cache cache.Cache) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var (
 			url, shortUrl string
@@ -40,12 +40,17 @@ func HandlerGetUrl(storage storageShortUrl, logger *slog.Logger, cache cache.Cac
 			return
 		}
 
-		if err = checkHomeAddress(c, url, address); err != nil {
+		if !isValidUrl(url) {
 			return
 		}
 
-		if err = checkCorrectLengthUrl(c, url); err != nil {
+		homeAddress := cfg.GetHomeAddress()
+		if err = checkHomeAddress(c, url, homeAddress); err != nil {
 			return
+		}
+
+		if !haveProtocol(url) {
+			url = "http://" + url
 		}
 
 		if shortUrl, added = cache.Get(url); !added || shortUrl == "" {
@@ -55,10 +60,9 @@ func HandlerGetUrl(storage storageShortUrl, logger *slog.Logger, cache cache.Cac
 			if err != nil {
 				return
 			}
-			fmt.Println(url)
 			_ = cache.Set(url, shortUrl)
 		}
-		c.JSON(200, gin.H{"url": address + shortUrl})
+		c.JSON(http.StatusOK, gin.H{"url": "http://" + homeAddress + shortUrl})
 	}
 }
 
@@ -86,6 +90,10 @@ func decodeUrl(c *gin.Context, logger *slog.Logger) (string, error) {
 	return url.Url, err
 }
 
+func isValidUrl(url string) bool {
+	return url != "http://" && url != "https://" && url != ""
+}
+
 func checkHomeAddress(c *gin.Context, url, address string) error {
 	if isHomeAddress(url, address) {
 		c.JSON(http.StatusOK, gin.H{"url": address})
@@ -99,13 +107,8 @@ func isHomeAddress(url, address string) bool {
 	return url == address || url == address[8:]
 }
 
-func checkCorrectLengthUrl(c *gin.Context, url string) error {
-	if len(url) <= 10 {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return ErrorShortLengthUrl
-	}
-
-	return nil
+func haveProtocol(url string) bool {
+	return strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://")
 }
 
 func getShortUrl(c *gin.Context, logger *slog.Logger, storage storageShortUrl, url string) (string, error) {
