@@ -60,8 +60,7 @@ const redirect = document.getElementById("redirect");
 
 document.getElementById("send-url").addEventListener("click", function(event){
     event.preventDefault();
-    console.log(inputUrl.value)
-    fetch("./getShortUrl", {
+    fetch("/getShortUrl", {
         method: "POST",
         headers: {
             "content-type": "application/json",
@@ -71,7 +70,8 @@ document.getElementById("send-url").addEventListener("click", function(event){
     then(response => response.json()).
     then(data => {
         showWindow();
-        outputURL.innerText = data.url;
-        redirect.href = data.url;
+        let url = document.location.href + data.url.slice(1);
+        outputURL.innerText = url;
+        redirect.href = url;
     }).catch(err => console.log(err));
 });

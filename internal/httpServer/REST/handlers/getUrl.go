@@ -62,7 +62,7 @@ func HandlerGetUrl(storage storageShortUrl, cfg config.HTTPServerConfig, logger 
 			}
 			_ = cache.Set(url, shortUrl)
 		}
-		c.JSON(http.StatusOK, gin.H{"url": "http://" + homeAddress + shortUrl})
+		c.JSON(http.StatusOK, gin.H{"url": shortUrl})
 	}
 }
 

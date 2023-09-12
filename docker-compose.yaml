@@ -1,0 +1,23 @@
+services:
+  mongodb:
+    image: mongo
+    ports:
+      - 27017:27017
+    networks:
+      - url_net
+    volumes:
+      - ./data:/data/db
+
+  app:
+    build: .
+    depends_on:
+      - mongodb
+    ports:
+      - 8080:8080
+    environment:
+      - configPath=config/config.yaml
+    networks:
+      - url_net
+
+networks:
+  url_net:
